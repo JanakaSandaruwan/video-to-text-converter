@@ -4,8 +4,9 @@ from PyQt4.QtCore import QThread, SIGNAL
 import time
 import json
 import GUI
-from textrecognition import TextGenerator as TextGenerator
+from text_recog_handler import TextGenerator as TextGenerator
 from textviewer import TextViewer as TextViewer
+from model_ocr import OCR as OCR
 
 
 class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
@@ -26,6 +27,8 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.filepath=""
         self.tp= TextGenerator()
         self.tp.ispytesseract=True
+
+        self.ocr=OCR()
 
         self.btnGeneratetext.clicked.connect(lambda: self.generateText())
 
@@ -224,6 +227,9 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.btnCancel.show()
 
         self.tp.start()
+        # path = "E:\\Semester Project\\ui\\test video\\Janaka.mp4"
+        # self.ocr.generateSrt(path)
+        # self.ocr.start()
 
 
     def playwithtext(self):

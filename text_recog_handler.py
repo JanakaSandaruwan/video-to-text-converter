@@ -8,7 +8,7 @@ import time
 from PyQt4.QtCore import QThread, SIGNAL
 pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files (x86)/Tesseract-OCR/tesseract'
 from PIL import Image
-from ocr import OCR as OCR
+from model_ocr import OCR as OCR
 
 
 class TextGenerator(QThread):
@@ -26,13 +26,20 @@ class TextGenerator(QThread):
     def run(self):
         self.generateSrt(self.filepath)
 
-    def get_path(self):
-        f = open("downloadpath", "r")
+    def get_path(self,downloadpath):
+        f = open(downloadpath, "r")
         s= f.read()
+        f.close()
         if s=="":
             return ""
         else:
             return s+ "\\"
+
+    def write_textfile(self,completepath,result):
+        text_file = open(completepath, "w", encoding='utf-8')
+        # encoding='utf-8'
+        text_file.write(result)
+        text_file.close()
 
     def compareFrames(self,img,f):
         scale_percent = self.scale_percent # percent of original size
@@ -40,14 +47,14 @@ class TextGenerator(QThread):
         height = int(img.shape[0] * scale_percent / 100)
         dim = (width, height)
         # resize image
-        resized_frame = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+        resized_frame = cv2.resize(img.copy(), dim, interpolation=cv2.INTER_AREA)
 
         # percent of original size
         width = int(f.shape[1] * scale_percent / 100)
         height = int(f.shape[0] * scale_percent / 100)
         dim = (width, height)
         # resize image
-        resized_f = cv2.resize(f, dim, interpolation=cv2.INTER_AREA)
+        resized_f = cv2.resize(f.copy(), dim, interpolation=cv2.INTER_AREA)
 
 
         res = cv2.matchTemplate(resized_frame, resized_f, cv2.TM_CCOEFF_NORMED)
@@ -123,14 +130,17 @@ class TextGenerator(QThread):
 
         self.emit(SIGNAL("progress100"),100)
 
-        completepath = os.path.join(self.get_path() + "output.txt")
+        completepath = os.path.join(self.get_path('downloadpath') + "expected_output.txt")
 
-        text_file = open(completepath, "w")
-        text_file.write(result)
-        text_file.close()
+        self.write_textfile(completepath,result)
+
+        # text_file = open(completepath, "w",encoding='utf-8')
+        # # encoding='utf-8'
+        # text_file.write(result)
+        # text_file.close()
 
 
-        with open('data.json', 'w') as outfile:
+        with open('data.json', 'w',encoding='utf-8') as outfile:
             json.dump(dict, outfile)
 
 
@@ -142,5 +152,4 @@ class TextGenerator(QThread):
 
 
 
-
-
+# %¥§.!5g.e
