@@ -11,8 +11,14 @@ class TextViewer(QThread):
         self.pausedtime=0
 
     def run(self):
+        """
+        This method read json file and display
+        content with relevant frame
+        """
         t = time.time()
         data = {}
+
+        # read json file
         with open('data.json') as json_file:
             data = json.load(json_file)
             # data=json.loads(data)

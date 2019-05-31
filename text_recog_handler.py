@@ -27,6 +27,10 @@ class TextGenerator(QThread):
         self.generateSrt(self.filepath)
 
     def get_path(self,downloadpath):
+        """
+        :param downloadpath:
+        :return: constructed download path where text file is generated
+        """
         f = open(downloadpath, "r")
         s= f.read()
         f.close()
@@ -36,12 +40,24 @@ class TextGenerator(QThread):
             return s+ "\\"
 
     def write_textfile(self,completepath,result):
+        """
+        write generated text into a file
+        :param completepath:
+        :param result:
+        :return:
+        """
         text_file = open(completepath, "w", encoding='utf-8')
         # encoding='utf-8'
         text_file.write(result)
         text_file.close()
 
     def compareFrames(self,img,f):
+        """
+        compare two frames
+        :param img:
+        :param f:
+        :return: similarity percentage between two frames
+        """
         scale_percent = self.scale_percent # percent of original size
         width = int(img.shape[1] * scale_percent / 100)
         height = int(img.shape[0] * scale_percent / 100)
@@ -64,31 +80,29 @@ class TextGenerator(QThread):
         dict={}
         result = ''
 
-        print("Start Generate Text")
-
         if path=="":
+            # return None if path to video is empty
             return
-        cap = cv2.VideoCapture(path)
+        cap = cv2.VideoCapture(path)#capture video
 
 
-        length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        fps = cap.get(cv2.CAP_PROP_FPS)
+        length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))#no of frames in the video
+        fps = cap.get(cv2.CAP_PROP_FPS)#frame rate per second
 
         one_present=length/100.0
-        completed=0
+
 
         currentFrame = 0
         ret, f = cap.read()
 
-        # Saves image of the current frame in jpg file
-        name = './data/frame' + str(currentFrame) + '.jpg'
 
-        cv2.imwrite(name, f)
-
+        # generate text of first frame
         if self.ispytesseract:
+            # use pytesseract module to generate text
             dict[0.0]=pytesseract.image_to_string(f)
             result = result + pytesseract.image_to_string(f) + '\n'
         else:
+            # use machine learning trained model to predict text
             dict[0.0] = self.myocr.ocr(f)
             result = result + self.myocr.ocr(f) + '\n'
 
@@ -103,18 +117,15 @@ class TextGenerator(QThread):
 
 
 
-            threshold = self.threshold
-            # print(threshold)
+            threshold = self.threshold#set threshol acording to accuracy level
 
-            # res = cv2.matchTemplate(frame, f, cv2.TM_CCOEFF_NORMED)
-            res= self.compareFrames(frame,f)
-            if res < threshold:
+
+            res= self.compareFrames(frame,f) #compare frame and f for similarity
+            if res < threshold:#if similarity percentage is lower than threshold
                 f = frame
 
-                name = 'frame' + str(currentFrame) + '.jpg'
-                # cv2.imwrite(name,f)
                 if self.ispytesseract:
-                    dict[currentFrame/fps]=pytesseract.image_to_string(f)
+                    dict[currentFrame/fps]=pytesseract.image_to_string(f)#set generated text to dictionary with its frame time
                     result = result + pytesseract.image_to_string(f) + '\n--------------------------------------------------------------------------\n'
                 else:
                     dict[currentFrame / fps] = self.myocr.ocr(f)
@@ -123,23 +134,19 @@ class TextGenerator(QThread):
 
 
             currentFrame += 1
-            completed=(currentFrame/one_present)
+            completed=(currentFrame/one_present)#calculate text generation percentage of video
 
-            self.emit(SIGNAL("progress"),completed)
+            self.emit(SIGNAL("progress"),completed)#set progress bar value
 
 
         self.emit(SIGNAL("progress100"),100)
 
-        completepath = os.path.join(self.get_path('downloadpath') + "expected_output.txt")
+        completepath = os.path.join(self.get_path('downloadpath') + "output.txt")
 
-        self.write_textfile(completepath,result)
-
-        # text_file = open(completepath, "w",encoding='utf-8')
-        # # encoding='utf-8'
-        # text_file.write(result)
-        # text_file.close()
+        self.write_textfile(completepath,result)#write result text to text file
 
 
+        # write dictionary to json
         with open('data.json', 'w',encoding='utf-8') as outfile:
             json.dump(dict, outfile)
 
@@ -147,9 +154,8 @@ class TextGenerator(QThread):
         # When everything done, release the capture
         cap.release()
         cv2.destroyAllWindows()
-        print("End Generate Text")
 
 
 
 
-# %¥§.!5g.e
+

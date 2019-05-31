@@ -10,16 +10,21 @@ from model_ocr import OCR as OCR
 
 
 class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
-
+    """
+     This class handles gui and basic gui operations
+    """
 
 
     def __init__(self):
         super(VideoPlayerClass, self).__init__()
         self.setupUi(self)
+        # button functions of video player
         self.btnPlay.clicked.connect(lambda :self.playVideo())
         self.btnPlaywithtext.clicked.connect(lambda:self.playwithtext() )
         self.btnPause.clicked.connect(lambda:self.pausewithtext())
         self.btnStop.clicked.connect(lambda: self.stopplayer())
+
+        # hide progressbar and cancel button at the begining
         self.progressbar.hide()
         self.btnCancel.hide()
 
@@ -36,6 +41,7 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.actionChange_download_path.triggered.connect(self.select_path)
         self.actionExit.triggered.connect(self.close)
 
+        # set font size
         self.action10.triggered.connect(lambda: self.setFont10())
         self.action12.triggered.connect(lambda :self.setFont12())
         self.action14.triggered.connect(lambda: self.setFont14())
@@ -52,7 +58,7 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.connect(self.tp, SIGNAL("progress"), self.setProgress)
         self.connect(self.tp, SIGNAL("progress100"), self.setProgress100)
 
-
+        # set accuracy and speed level
         self.actionLow.triggered.connect(lambda :self.setLowAccuracy())
         self.actionMedium.triggered.connect(lambda: self.setMediumAccuracy())
         self.actionHigh.triggered.connect(lambda: self.setHighAccuracy())
@@ -66,18 +72,26 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.isgenerate=False
         self.btnPlaywithtext.hide()
 
+        self.btnGeneratetext.hide()
+
 
     def playVideo(self):
+        # play video player
         self.videoPlayer.play()
+        # hide play with button when play button is pressed
         self.btnPlaywithtext.hide()
 
 
+
+
     def usePytesseract(self):
+        # select pytesseract module for text recognition
         self.tp.ispytesseract=True
         self.actionPytesseract.setText("-->Pytesseract")
         self.actionML.setText("ML")
 
     def useMyocr(self):
+        # select machine learning model for text recognition
         self.tp.ispytesseract=False
         self.actionPytesseract.setText("Pytesseract")
         self.actionML.setText("-->ML")
@@ -85,21 +99,24 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
 
 
     def cancelTextGenerate(self):
-        print("Generate cancel")
+        # cancel text file generation task
         self.tp.terminate()
+        # set progressbar attributes
         self.progressbar.hide()
         self.progressbar.setValue(0)
         self.btnCancel.hide()
 
 
     def setLowAccuracy(self):
+        # set accuracy level low
         self.tp.threshold=0.3
         self.tp.scale_percent=25
         self.actionLow.setText("-->Low")
         self.actionMedium.setText("Medium")
         self.actionHigh.setText("High")
 
-    def setMediumAccuracy(self):
+    def setMediumAccuracy(self):\
+        # set accuracy level medium
         self.tp.threshold=0.5
         self.tp.scale_percent=50
         self.actionLow.setText("Low")
@@ -107,12 +124,14 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.actionHigh.setText("High")
 
     def setHighAccuracy(self):
+        # set accuracy level high
         self.tp.threshold=0.9
         self.tp.scale_percent=75
         self.actionLow.setText("Low")
         self.actionMedium.setText("Medium")
         self.actionHigh.setText("-->High")
 
+    # set font sizes of text screen
     def setFont10(self):
         self.label.setStyleSheet('background-color: black; color: white ; font-size:' + str(10) + 'pt ')
         self.action10.setText("-->10")
@@ -208,12 +227,12 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.action28.setText("-->48")
 
 
-
+    # set profress bar value
     def setProgress(self,val):
         # print("val",val)
         self.progressbar.setValue(val)
 
-
+    # set progressbar attributes after completing text generation
     def setProgress100(self,val):
         self.progressbar.setValue(val)
         self.progressbar.hide()
@@ -221,7 +240,7 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.btnPlaywithtext.show()
         self.isgenerate=True
 
-
+    # start text generating process
     def generateText(self):
         self.progressbar.show()
         self.btnCancel.show()
@@ -231,14 +250,16 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         # self.ocr.generateSrt(path)
         # self.ocr.start()
 
-
+    # play video with text
     def playwithtext(self):
         self.videoPlayer.play()
         self.textviewer.ispause= False
         self.textviewer.isstop=False
         self.textviewer.start()
+        self.btnPlaywithtext.hide()
+        self.seekSlider.hide()
 
-
+    # display text on text screen
     def setLableVal(self,val):
         self.label.setText(val)
         QtGui.QApplication.processEvents()
@@ -257,9 +278,10 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.textviewer.pausedtime=0
         if self.isgenerate:
             self.btnPlaywithtext.show()
+            self.seekSlider.show()
 
 
-
+    # select the path of video from folders
     def select_path(self):
         file = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Directory"))
         text_file = open("downloadpath", "w")
@@ -277,7 +299,8 @@ class VideoPlayerClass(GUI.Ui_MainWindow, QtGui.QMainWindow):
         self.load_video(filepath)
         #print (self.filepath)
         self.isgenerate=False
-        print(filepath)
+        self.btnGeneratetext.show()
+        # print(filepath)
 
     def load_video(self, filepath):
         media = phonon.Phonon.MediaSource(filepath)

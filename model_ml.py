@@ -84,7 +84,6 @@ def generate_samples():
     for font in fonts:
         for character in charset:
             label = charset.index(character)
-            print('GENERATING SAMPLES - %s - %s' % (font, character))
             #samples_per_class=10
             for i in range(samples_per_class):
                 sample = make_random_image(font, character)
@@ -95,7 +94,6 @@ def generate_samples():
 
 
 def instantiate_model():
-    print('COMPILING MODEL')
     model = Sequential()
     model.add(Convolution2D(filters=32, kernel_size=(3, 3), strides=(1, 1), activation='relu', input_shape=input_shape))
     model.add(Convolution2D(filters=32, kernel_size=(3, 3), strides=(1, 1), activation='relu'))
@@ -121,8 +119,6 @@ def prepare_datasets(samples):
     training_labels = [i[1] for i in training_set]
     training_labels = np.asarray(training_labels)
     training_labels = np_utils.to_categorical(training_labels, num_classes)
-    print('TRAINING DATA SHAPE', training_data.shape)
-    print('TRAINING LABELS SHAPE', training_labels.shape)
     test_data = [i[0] for i in test_set]
     test_data = np.asarray(test_data).astype('float32')
     test_data = np.expand_dims(test_data, axis=3)
@@ -130,41 +126,16 @@ def prepare_datasets(samples):
     test_labels = [i[1] for i in test_set]
     test_labels = np.asarray(test_labels)
     test_labels = np_utils.to_categorical(test_labels, num_classes)
-    print('TEST DATA SHAPE', test_data.shape)
-    print('TEST LABELS SHAPE', test_labels.shape)
     return training_data, training_labels, test_data, test_labels
 
 
 if __name__ == '__main__':
     samples = generate_samples()
-    print('SAMPLES GENERATED', len(samples))
     training_data, training_labels, test_data, test_labels = prepare_datasets(samples)
     classifier = instantiate_model()
     classifier.fit(training_data, training_labels, batch_size=batch, epochs=epoch, verbose=1)
     score = classifier.evaluate(test_data, test_labels, batch_size=batch)
-    print('OVERALL SCORE', score)
-    classifier.save('model/keras_alphanumeric.mod')
+    classifier.save('model/ocr_model.mod')
 
 
-# def generate_samples1():
-#     random.seed()
-#     fonts = os.listdir(font_dir)
-#     results = []
-#     for font in fonts:
-#         for character in charset:
-#             label = charset.index(character)
-#             print('GENERATING SAMPLES - %s - %s' % (font, character))
-#             for i in range(samples_per_class):
-#                 sample = make_random_image(font, character)
-#                 # cv2.imshow("lll",sample)
-#                 # cv2.waitKey(0)
-#                 # cv2.destroyAllWindows()
-#                 path='train/image'+str(i)+character+'.png'
-#                 cv2.imwrite(path,sample)
-#                 results.append((sample, label))
-#                 if (label==30):
-#                     return
-#     return results
-#
-# img=generate_samples1()[0][0]
 
